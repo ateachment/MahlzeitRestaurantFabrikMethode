@@ -1,6 +1,7 @@
 ﻿/* Implementierung eines Beispiels zur Veranschaulichung des fabric method pattern
  * Quelle: https://de.wikipedia.org/wiki/Fabrikmethode
  * Übersetzung in C# durch W.Eick 3.7.16
+ * Erweitert um 3. Hierarchieebene mit neuen parametrisierten Fabrikmethoden 4.7.16
  */
 
 using System;
@@ -18,6 +19,18 @@ namespace MahlzeitRestaurantFabrikMethode
         }
     };
 
+    // weitere Klassen
+    class Margharita : Pizza {
+    }
+    class Vegetaria : Pizza {
+    }
+    //Aufzählungstyp (Integerkonstanten wg. Komfort)
+    public enum PizzaTyp { 
+        MARGHARITA,
+        VEGETARIA
+    }
+
+
     // noch ein konkretes Produkt
     class Rostwurst : Mahlzeit {
         public Rostwurst(string beilage) {
@@ -27,6 +40,9 @@ namespace MahlzeitRestaurantFabrikMethode
             }
         }
     };
+
+
+
 
     // Erzeuger
     abstract class Restaurant {
@@ -56,7 +72,34 @@ namespace MahlzeitRestaurantFabrikMethode
     class Pizzeria : Restaurant {
         // Implementierung der abstrakten Methode der Basisklasse
         protected override void MahlzeitZubereiten() {
-            mahlzeit = new Pizza();
+            mahlzeit = new Mahlzeit();
+        }
+        // zusätzliche Methoden mit Parameter anstelle von 
+        // jeweils neue konkrete Erzeugerklasse für jeden Pizzatyp
+        public void PizzaLiefern(PizzaTyp pizzaTyp)
+        {
+            BestellungAufnehmen();
+            PizzaZubereiten(pizzaTyp); // Aufruf der Factory-Methode
+            PizzaServieren();
+        }
+        protected void PizzaZubereiten(PizzaTyp pizzaTyp)
+        {
+            switch (pizzaTyp)
+            {
+                case PizzaTyp.MARGHARITA:
+                    mahlzeit = new Margharita();
+                    break;
+                case PizzaTyp.VEGETARIA:
+                    mahlzeit = new Vegetaria();
+                    break;
+                default:
+                    mahlzeit = new Pizza();
+                    break;
+            }
+        }
+        protected virtual void PizzaServieren()
+        {
+            Console.WriteLine("Hier Ihre Pizza. Guten Appetit!\n");
         }
     };
 
@@ -75,6 +118,7 @@ namespace MahlzeitRestaurantFabrikMethode
         {
             Pizzeria daToni = new Pizzeria();
             daToni.MahlzeitLiefern();
+            daToni.PizzaLiefern(PizzaTyp.VEGETARIA);
 
             Rostwurstbude brunosImbiss = new Rostwurstbude();
             brunosImbiss.MahlzeitLiefern();
